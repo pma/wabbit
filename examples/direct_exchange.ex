@@ -42,7 +42,7 @@ defmodule Sink do
     # Encode event to binary payload and override default publish options
     payload = Integer.to_string(event)
     publish_opts = [timestamp: :os.system_time()]
-    {:ok, payload, state, publish_opts}
+    {:ok, payload, state + 1, publish_opts}
   end
 end
 
@@ -122,5 +122,3 @@ end
 
 GenStage.sync_subscribe(sink, to: producer, min_demand: 500, max_demand: 1000)
 GenStage.sync_subscribe(consumer, to: source, max_demand: 1000)
-
-
