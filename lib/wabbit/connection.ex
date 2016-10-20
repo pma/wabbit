@@ -109,18 +109,20 @@ defmodule Wabbit.Connection do
     options = options |> normalize_ssl_options
 
     amqp_params =
-      amqp_params_network(username:           Keyword.get(options, :username,           "guest"),
-                          password:           Keyword.get(options, :password,           "guest"),
-                          virtual_host:       Keyword.get(options, :virtual_host,       "/"),
-                          host:               Keyword.get(options, :host,               'localhost') |> to_charlist,
-                          port:               Keyword.get(options, :port,               :undefined),
-                          channel_max:        Keyword.get(options, :channel_max,        0),
-                          frame_max:          Keyword.get(options, :frame_max,          0),
-                          heartbeat:          Keyword.get(options, :heartbeat,          0),
-                          connection_timeout: Keyword.get(options, :connection_timeout, :infinity),
-                          ssl_options:        Keyword.get(options, :ssl_options,        :none),
-                          client_properties:  Keyword.get(options, :client_properties,  []),
-                          socket_options:     Keyword.get(options, :socket_options,     []))
+      amqp_params_network(
+        username:           Keyword.get(options, :username,           "guest"),
+        password:           Keyword.get(options, :password,           "guest"),
+        virtual_host:       Keyword.get(options, :virtual_host,       "/"),
+        host:               Keyword.get(options, :host,               'localhost') |> to_charlist,
+        port:               Keyword.get(options, :port,               :undefined),
+        channel_max:        Keyword.get(options, :channel_max,        0),
+        frame_max:          Keyword.get(options, :frame_max,          0),
+        heartbeat:          Keyword.get(options, :heartbeat,          0),
+        connection_timeout: Keyword.get(options, :connection_timeout, :infinity),
+        ssl_options:        Keyword.get(options, :ssl_options,        :none),
+        client_properties:  Keyword.get(options, :client_properties,  []),
+        socket_options:     Keyword.get(options, :socket_options,     []),
+        auth_mechanisms:    Keyword.get(options, :auth_mechanisms,    [&:amqp_auth_mechanisms.plain/3, &:amqp_auth_mechanisms.amqplain/3]))
 
     case :amqp_connection.start(amqp_params) do
       {:ok, pid} -> {:ok, pid}
