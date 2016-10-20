@@ -11,7 +11,8 @@ defmodule Wabbit.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :amqp_client, :connection],
+    [applications: [:logger, :amqp_client, :connection, :gen_stage,
+                    :asn1, :public_key, :ssl],
      mod: {Wabbit, []}]
   end
 
