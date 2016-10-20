@@ -33,9 +33,9 @@ defmodule Sink do
 
   def handle_channel_opened(chan, state) do
     # Declare exchange, queue, bindings, etc...
-    {:ok, %{queue: queue}} = Wabbit.Queue.declare(chan, "command_handler", persistent: true)
+    {:ok, %{queue: queue}} = Wabbit.Queue.declare(chan, "command_handler", durable: true)
     # Set default publish options: use default exchange and route directly to queue
-    {:ok, state, exchange: "", routing_key: queue}
+    {:ok, state, exchange: "", routing_key: queue, persistent: true}
   end
 
   def handle_encode(event, state) do
@@ -59,7 +59,7 @@ defmodule Source do
 
   def handle_channel_opened(chan, state) do
     # Declare exchange, queue, bindings, etc...
-    {:ok, %{queue: queue}} = Wabbit.Queue.declare(chan, "command_handler", persistent: true)
+    {:ok, %{queue: queue}} = Wabbit.Queue.declare(chan, "command_handler", durable: true)
     # Set consume queue and options
     {:ok, queue, state, prefetch_count: 1000}
   end
