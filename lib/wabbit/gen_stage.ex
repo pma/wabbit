@@ -3,13 +3,12 @@ alias Experimental.GenStage
 defmodule Wabbit.GenStage do
   use GenStage
   import Wabbit.Record
-  require Logger
   require Record
   Record.defrecordp :amqp_msg, [props: p_basic(), payload: ""]
 
-  defstruct [:mod, :state, :type, :demand, :consumer_tag,
-             :producers, :table_id, :conn, :chan, :queue,
-             :unconfirmed, :publish_options, :max_unconfirmed]
+  defstruct [:mod, :state, :type, :demand, :consumer_tag, :table_id,
+             :conn, :chan, :queue, :unconfirmed, :max_unconfirmed,
+             producers: %{}, publish_options: []]
 
   @typedoc "The supported stage types."
   @type type :: :producer | :consumer
@@ -348,7 +347,6 @@ defmodule Wabbit.GenStage do
     _monitor_ref = Process.monitor(chan)
     :ok = Wabbit.Basic.qos(chan, opts)
     {:ok, consumer_tag} = Wabbit.Basic.consume(chan, queue, opts)
-    Logger.debug "Channel open"
     %{state | chan: chan, consumer_tag: consumer_tag, state: new_state}
   end
 
