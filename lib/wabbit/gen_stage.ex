@@ -1,7 +1,6 @@
 alias Experimental.GenStage
 
 defmodule Wabbit.GenStage do
-  use GenStage
   import Wabbit.Record
   require Record
   Record.defrecordp :amqp_msg, [props: p_basic(), payload: ""]
@@ -55,10 +54,59 @@ defmodule Wabbit.GenStage do
     {:ok, message :: any, new_state} |
     {:error, reason, new_state :: any} when new_state: term, reason: term
 
+  @callback handle_demand(demand :: pos_integer, state :: term) ::
+    {:noreply, [event], new_state} |
+    {:noreply, [event], new_state, :hibernate} |
+    {:stop, reason, new_state} when new_state: term, reason: term, event: term
+
+  @callback handle_subscribe(:producer | :consumer, opts :: [options],
+                             to_or_from :: GenServer.from, state :: term) ::
+    {:automatic | :manual, new_state} |
+    {:stop, reason, new_state} when new_state: term, reason: term
+
+  @callback handle_cancel({:cancel | :down, reason :: term}, GenServer.from, state :: term) ::
+    {:noreply, [event], new_state} |
+    {:noreply, [event], new_state, :hibernate} |
+    {:stop, reason, new_state} when event: term, new_state: term, reason: term
+
+  @callback handle_events([event], GenServer.from, state :: term) ::
+    {:noreply, [event], new_state} |
+    {:noreply, [event], new_state, :hibernate} |
+    {:stop, reason, new_state} when new_state: term, reason: term, event: term
+
+  @callback handle_call(request :: term, GenServer.from, state :: term) ::
+    {:reply, reply, [event], new_state} |
+    {:reply, reply, [event], new_state, :hibernate} |
+    {:noreply, [event], new_state} |
+    {:noreply, [event], new_state, :hibernate} |
+    {:stop, reason, reply, new_state} |
+    {:stop, reason, new_state} when reply: term, new_state: term, reason: term, event: term
+
+  @callback handle_cast(request :: term, state :: term) ::
+    {:noreply, [event], new_state} |
+    {:noreply, [event], new_state, :hibernate} |
+    {:stop, reason :: term, new_state} when new_state: term, event: term
+
+  @callback handle_info(msg :: term, state :: term) ::
+    {:noreply, [event], new_state} |
+    {:noreply, [event], new_state, :hibernate} |
+    {:stop, reason :: term, new_state} when new_state: term, event: term
+
+  @callback terminate(reason, state :: term) ::
+    term when reason: :normal | :shutdown | {:shutdown, term} | term
+
+  @callback code_change(old_vsn, state :: term, extra :: term) ::
+    {:ok, new_state :: term} |
+    {:error, reason :: term} when old_vsn: term | {:down, term}
+
+  @callback format_status(:normal | :terminate, [pdict :: {term, term} | state :: term, ...]) ::
+    status :: term
+
+  @optional_callbacks [handle_demand: 2, handle_events: 3, format_status: 2]
+
   @doc false
   defmacro __using__(_) do
     quote location: :keep do
-      use GenStage
       @behaviour Wabbit.GenStage
 
       @doc false
@@ -99,6 +147,16 @@ defmodule Wabbit.GenStage do
       end
 
       @doc false
+      def handle_subscribe(_kind, _opts, _from, state) do
+        {:automatic, state}
+      end
+
+      @doc false
+      def handle_cancel(_reason, _from, state) do
+        {:noreply, [], state}
+      end
+
+      @doc false
       def handle_cast(msg, state) do
         # We do this to trick Dialyzer to not complain about non-local returns.
         reason = {:bad_cast, msg}
@@ -120,7 +178,7 @@ defmodule Wabbit.GenStage do
 
       defoverridable [handle_channel_opened: 2, handle_encode: 2, handle_decode: 3,
                       handle_call: 3, handle_info: 2, handle_cast: 2,
-                      terminate: 2, code_change: 3]
+                      handle_subscribe: 4, handle_cancel: 3, terminate: 2, code_change: 3]
     end
   end
 
