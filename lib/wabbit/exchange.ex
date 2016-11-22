@@ -7,19 +7,26 @@ defmodule Wabbit.Exchange do
 
   @doc """
   Declares an Exchange. The default Exchange type is `direct`.
+
   AMQP 0-9-1 brokers provide four pre-declared exchanges:
-  *   Direct exchange: (empty string) or `amq.direct`
-  *   Fanout exchange: `amq.fanout`
-  *   Topic exchange: `amq.topic`
-  *   Headers exchange: `amq.match` (and `amq.headers` in RabbitMQ)
+
+  * Direct exchange: (empty string) or `amq.direct`
+  * Fanout exchange: `amq.fanout`
+  * Topic exchange: `amq.topic`
+  * Headers exchange: `amq.match` (and `amq.headers` in RabbitMQ)
+
   Besides the exchange name and type, the following options can be used:
+
   # Options
-    * `:durable`: If set, keeps the Exchange between restarts of the broker;
-    * `:auto_delete`: If set, deletes the Exchange once all queues unbind from it;
-    * `:passive`: If set, returns an error if the Exchange does not already exist;
-    * `:internal:` If set, the exchange may not be used directly by publishers,
-but only when bound to other exchanges. Internal exchanges are used to construct
-wiring that is not visible to applications.
+
+    * `:durable` - If set, keeps the Exchange between restarts of the broker
+    * `:auto_delete` - If set, deletes the Exchange once all queues unbind from it
+    * `:passive` - If set, returns an error if the Exchange does not already exist
+    * `:internal` - If set, the exchange may not be used directly by publishers,
+    but only when bound to other exchanges. Internal exchanges are  used to
+    construct wiring that is not visible to applications.
+    * `:no_wait` - If set, the server will not respond to the method
+    * `:arguments` - A set of arguments for the declaration
   """
   def declare(channel, exchange, type \\ :direct, options \\ []) do
     exchange_declare =
@@ -36,8 +43,15 @@ wiring that is not visible to applications.
   end
 
   @doc """
-  Deletes an Exchange by name. When an Exchange is deleted all bindings to it are
-  also deleted
+  Deletes an Exchange by name.
+
+  When an Exchange is deleted all bindings to it are also deleted
+
+  # Options
+
+    * `:if_unused` - If set, the server will only delete the exchange
+      if it has no queue bindings
+    * `:no_wait` - If set, the server will not respond to the method
   """
   def delete(channel, exchange, options \\ []) do
     exchange_delete =
@@ -51,6 +65,12 @@ wiring that is not visible to applications.
   @doc """
   Binds an Exchange to another Exchange or a Queue using the
   exchange.bind AMQP method (a RabbitMQ-specific extension)
+
+  # Options
+
+    * `:routing_key` - If set, specifies the routing key for the binding
+    * `:no_wait` - If set, the server will not respond to the method
+    * `:arguments` - A set of arguments for the binding
   """
   def bind(channel, destination, source, options \\ []) do
     exchange_bind =
@@ -66,6 +86,12 @@ wiring that is not visible to applications.
   @doc """
   Unbinds an Exchange from another Exchange or a Queue using the
   exchange.unbind AMQP method (a RabbitMQ-specific extension)
+
+  # Options
+
+    * `:routing_key` - If set, specifies the routing key for the unbind
+    * `:no_wait` - If set, the server will not respond to the method
+    * `:arguments` - A set of arguments for the unbind
   """
   def unbind(channel, destination, source, options \\ []) do
     exchange_unbind =

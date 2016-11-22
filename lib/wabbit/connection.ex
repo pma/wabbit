@@ -2,18 +2,42 @@ defmodule Wabbit.Connection do
   use Connection
   import Wabbit.Record
 
+  @doc """
+  Starts a new connection
+
+  # Options
+
+    * `:username` - Default is `"guest"`
+    * `:password` - Default is `"guest"`
+    * `:virtual_host` - The name of the virtual host to work with. Default is `"/"`
+    * `:host` - Server host name or address. Default is `"localhost"`
+    * `:port` - Default is `:undefined`
+    * `:channel_max` - The maximum total number of channels that the
+      client will use per connection. Default is `0`
+    * `:frame_max` - The largest frame size that the client and server
+      will use for the connection. Default is `0`
+    * `:heartbeat` - The delay, in seconds, of the connection
+      heartbeat that the client wants. Default is `0`
+    * `:connection_timeout` - Default is `:infinity`
+    * `:ssl_options` - Default is `:none`
+    * `:client_properties` - Default is `[]`
+    * `:socket_options` - Default is `[]`
+    * `:auth_mechanisms` - A list of the security mechanisms that the
+      server supports. Default is `[&:amqp_auth_mechanisms.plain/3,
+      &:amqp_auth_mechanisms.amqplain/3]`
+  """
   def start_link(options \\ []) do
     Connection.start_link(__MODULE__, options, options)
   end
 
+  @doc """
+  Closes a connection
+  """
   def close(conn), do: Connection.call(conn, :close)
 
-  def init(opts) do
-    Process.flag(:trap_exit, true)
-    state = %{conn: nil, opts: opts, channels: %{}}
-    {:connect, :init, state}
-  end
-
+  @doc """
+  Stops a connection
+  """
   def stop(conn), do: GenServer.stop(conn)
 
   def connect(_, state) do
@@ -40,8 +64,17 @@ defmodule Wabbit.Connection do
     {:connect, :reconnect, %{state | conn: nil, channels: %{}}}
   end
 
+  @doc """
+  Opens a new channel
+  """
   def open_channel(conn) do
     Connection.call(conn, :open_channel)
+  end
+
+  def init(opts) do
+    Process.flag(:trap_exit, true)
+    state = %{conn: nil, opts: opts, channels: %{}}
+    {:connect, :init, state}
   end
 
   def handle_call(_, _, %{conn: nil} = state) do

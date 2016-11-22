@@ -11,35 +11,44 @@ defmodule Wabbit.Basic do
   @doc """
   Publishes a message to an Exchange.
 
-  This method publishes a message to a specific exchange. The message will be routed
-  to queues as defined by the exchange configuration and distributed to any subscribers.
+  This method publishes a message to a specific exchange. The message
+  will be routed to queues as defined by the exchange configuration
+  and distributed to any subscribers.
 
-  The parameter `exchange` specifies the name of the exchange to publish to. If set to
-  empty string, it publishes to the default exchange.
-  The `routing_key` parameter specifies the routing key for the message.
+  The parameter `:exchange` specifies the name of the exchange to
+  publish to. If set to empty string, it publishes to the default
+  exchange.
 
-  The `payload` parameter specifies the message content as a binary.
+  The `:routing_key` parameter specifies the routing key for the
+  message.
 
-  In addition to the previous parameters, the following options can be used:
+  The `:payload` parameter specifies the message content as a binary.
+
+  In addition to the previous parameters, the following options can be
+  used:
 
   # Options
 
-    * `:mandatory` - If set, returns an error if the broker can't route the message to a queue (default `false`);
-    * `:immediate` - If set, returns an error if the broker can't deliver te message to a consumer immediately (default `false`);
-    * `:content_type` - MIME Content type;
-    * `:content_encoding` - MIME Content encoding;
-    * `:headers` - Message headers. Can be used with headers Exchanges;
-    * `:persistent` - If set, uses persistent delivery mode. Messages marked as `persistent` that are delivered to `durable` \
-                      queues will be logged to disk;
-    * `:correlation_id` - application correlation identifier;
-    * `:priority` - message priority, ranging from 0 to 9;
-    * `:reply_to` - name of the reply queue;
-    * `:expiration` - how long the message is valid (in milliseconds);
-    * `:message_id` - message identifier;
-    * `:timestamp` - timestamp associated with this message (epoch time);
-    * `:type` - message type as a string;
-    * `:user_id` - creating user ID. RabbitMQ will validate this against the active connection user;
-    * `:app_id` - publishing application ID.
+    * `:mandatory` - If set, returns an error if the broker can't
+      route the message to a queue (default `false`)
+    * `:immediate` - If set, returns an error if the broker can't
+      deliver te message to a consumer immediately (default `false`)
+    * `:content_type` - MIME Content type
+    * `:content_encoding` - MIME Content encoding
+    * `:headers` - Message headers. Can be used with headers Exchanges
+    * `:persistent` - If set, uses persistent delivery mode. Messages
+      marked as `persistent` that are delivered to `durable` queues
+      will be logged to disk
+    * `:correlation_id` - application correlation identifier
+    * `:priority` - message priority, ranging from 0 to 9
+    * `:reply_to` - name of the reply queue
+    * `:expiration` - how long the message is valid (in milliseconds)
+    * `:message_id` - message identifier
+    * `:timestamp` - timestamp associated with this message (epoch time)
+    * `:type` - message type as a string
+    * `:user_id` - creating user ID. RabbitMQ will validate this
+      against the active connection user
+    * `:app_id` - publishing application ID
 
   ## Examples
 
@@ -56,7 +65,7 @@ defmodule Wabbit.Basic do
     p_basic =
       p_basic(content_type:     Keyword.get(options, :content_type,     :undefined),
               content_encoding: Keyword.get(options, :content_encoding, :undefined),
-              headers:          Keyword.get(options, :headers,          :undefined), # |> Utils.to_type_tuple,
+              headers:          Keyword.get(options, :headers,          :undefined),
               delivery_mode:    if(options[:persistent], do: 2, else: 1),
               priority:         Keyword.get(options, :priority,         :undefined),
               correlation_id:   Keyword.get(options, :correlation_id,   :undefined),
@@ -73,8 +82,10 @@ defmodule Wabbit.Basic do
   end
 
   @doc """
-  Acknowledges one or more messages. If `multiple` is set to `true`, all messages up to the one
-  specified by `delivery_tag` are considered acknowledged by the server.
+  Acknowledges one or more messages.
+
+  If `multiple` is set to `true`, all messages up to the one specified
+  by `delivery_tag` are considered acknowledged by the server.
   """
   def ack(channel, delivery_tag, options \\ []) do
     :amqp_channel.call(channel,
@@ -92,11 +103,17 @@ defmodule Wabbit.Basic do
   end
 
   @doc """
-  Negative acknowledge of one or more messages. If `multiple` is set to `true`, all messages up to the
-  one specified by `delivery_tag` are considered as not acknowledged by the server. If `requeue` is set
-  to `true`, the message will be returned to the queue and redelivered to the next available consumer.
-  This is a RabbitMQ specific extension to AMQP 0.9.1. It is equivalent to reject, but allows rejecting
-  multiple messages using the `multiple` option.
+  Negative acknowledge of one or more messages.
+
+  If `:multiple` is set to `true`, all messages up to the one specified
+  by `delivery_tag` are considered as not acknowledged by the
+  server.
+
+  If `:requeue` is set to `true`, the message will be returned to the
+  queue and redelivered to the next available consumer. This is a
+  RabbitMQ specific extension to AMQP 0.9.1. It is equivalent to
+  reject, but allows rejecting multiple messages using the `multiple`
+  option.
   """
   def nack(channel, delivery_tag, options \\ []) do
     :amqp_channel.call(channel,
@@ -106,18 +123,41 @@ defmodule Wabbit.Basic do
   end
 
   @doc """
-  Registers a queue consumer process. The `pid` of the process can be set using
-  the `subscriber` argument and defaults to the calling process.
-  The consumer process will receive the following data structures:
-  * `{:basic_deliver, payload, meta}` - This is sent for each message consumed, where \
-  `payload` contains the message content and `meta` contains all the metadata set when \
-  sending with Basic.publish or additional info set by the broker;
-  * `{:basic_consume_ok, %{consumer_tag: consumer_tag}}` - Sent when the consumer \
-  process is registered with Basic.consume. The caller receives the same information \
-  as the return of Basic.consume;
-  * `{:basic_cancel, %{consumer_tag: consumer_tag, no_wait: no_wait}}` - Sent by the \
-  broker when the consumer is unexpectedly cancelled (such as after a queue deletion)
-  * `{:basic_cancel_ok, %{consumer_tag: consumer_tag}}` - Sent to the consumer process after a call to Basic.cancel
+  Registers a queue consumer process.
+
+  The `pid` of the process can be set using the `subscriber` argument
+  and defaults to the calling process.
+
+  The consumer process will receive the following messages:
+
+  * `{:basic_deliver, payload, meta}` - This is sent for each message
+  consumed, where `payload` contains the message content and `meta`
+  contains all the metadata set when sending with Basic.publish or
+  additional info set by the broker
+
+  * `{:basic_consume_ok, %{consumer_tag: consumer_tag}}` - Sent when
+  the consumer process is registered with Basic.consume. The caller
+  receives the same information as the return of Basic.consume
+
+  * `{:basic_cancel, %{consumer_tag: consumer_tag, no_wait: no_wait}}` - Sent
+  by the broker when the consumer is unexpectedly cancelled
+  (such as after a queue deletion)
+
+  * `{:basic_cancel_ok, %{consumer_tag: consumer_tag}}` - Sent to the
+    consumer process after a call to Basic.cancel
+
+  # Options
+
+    * `:consumer_tag` - Identifier for the consumer, valid within the
+      current channel
+    * `:no_local` - If the no-local field is set the server will not
+      send messages to the connection that published them
+    * `:no_ack` - If this field is set the server does not expect
+      acknowledgements for messages
+    * `:exclusive` - Request exclusive consumer access, meaning only
+      this consumer can access the queue
+    * `:no_wait` - If set, the server will not respond to the method
+    * `:arguments` - A set of arguments for the consume
   """
   def consume(channel, queue, options \\ []) do
     basic_consume =
@@ -137,8 +177,16 @@ defmodule Wabbit.Basic do
   end
 
   @doc """
-  Sets the message prefetch count or prefetech size (in bytes). If `global` is set to `true` this
-  applies to the entire Connection, otherwise it applies only to the specified Channel.
+  Sets the message prefetch count or size (in bytes).
+
+  If `:global` is set to `true` this applies to the entire Connection,
+  otherwise it applies only to the specified Channel.
+
+  # Options
+
+    * `:prefetch_size` - Number of messages to be sent in advance
+    * `:prefetch_count` - Specifies a prefetch window in terms of whole messages
+    * `:global` - QoS settings scope
   """
   def qos(channel, options \\ []) do
     basic_qos_ok() = :amqp_channel.call(channel,
@@ -148,5 +196,4 @@ defmodule Wabbit.Basic do
         global:         Keyword.get(options, :global,         false)))
     :ok
   end
-
 end
