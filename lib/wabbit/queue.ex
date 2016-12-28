@@ -8,14 +8,20 @@ defmodule Wabbit.Queue do
   alias Wabbit.Utils
 
   @doc """
-  Declares a queue. The optional `queue` parameter is used to set the name.
-  If set to an empty string (default), the server will assign a name.
-  Besides the queue name, the following options can be used:
+  Declares a queue.
+
+  The optional `queue` parameter is used to set the name. If set to an
+  empty string (default), the server will assign a name. Besides the
+  queue name, the following options can be used:
+
   # Options
+
     * `:durable` - If set, keeps the Queue between restarts of the broker
     * `:auto_delete` - If set, deletes the Queue once all subscribers disconnect
     * `:exclusive` - If set, only one subscriber can consume from the Queue
     * `:passive` - If set, raises an error unless the queue already exists
+    * `:no_wait` - If set, the server will not respond to the method
+    * `:arguments` - A set of arguments for the declaration
   """
   def declare(channel, queue \\ "", options \\ []) do
     queue_declare =
@@ -34,6 +40,14 @@ defmodule Wabbit.Queue do
 
   @doc """
   Binds a Queue to an Exchange
+
+  The following options can be used:
+
+  # Options
+
+    * `:routing_key` - If set, specifies the routing key for the binding
+    * `:no_wait` - If set, the server will not respond to the method
+    * `:arguments` - A set of arguments for the binding
   """
   def bind(channel, queue, exchange, options \\ []) do
     queue_bind =
@@ -48,6 +62,13 @@ defmodule Wabbit.Queue do
 
   @doc """
   Unbinds a Queue from an Exchange
+
+  The following options can be used:
+
+  # Options
+
+    * `:routing_key` - If set, specifies the routing key for the unbind
+    * `:arguments` - A set of arguments for the unbind
   """
   def unbind(channel, queue, exchange, options \\ []) do
     queue_unbind =
@@ -61,6 +82,14 @@ defmodule Wabbit.Queue do
 
   @doc """
   Deletes a Queue by name
+
+  The following options can be used:
+
+  # Options
+
+    * `:if_unused` - If set, the server will only delete the queue if it has no consumers
+    * `:if_empty` - If set, the server will only delete the queue if it has no messages
+    * `:no_wait` - If set, the server will not respond to the method
   """
   def delete(channel, queue, options \\ []) do
     queue_delete =
@@ -82,6 +111,7 @@ defmodule Wabbit.Queue do
 
   @doc """
   Returns the message count and consumer count for the given queue.
+
   Uses Queue.declare with the `passive` option set.
   """
   def status(channel, queue) do
@@ -89,8 +119,8 @@ defmodule Wabbit.Queue do
   end
 
   @doc """
-  Returns the number of messages that are ready for delivery (e.g. not pending acknowledgements)
-  in the queue
+  Returns the number of messages that are ready for delivery (e.g. not
+  pending acknowledgements) in the queue
   """
   def message_count(channel, queue) do
     {:ok, %{message_count: message_count}} = status(channel, queue)
