@@ -1,5 +1,5 @@
 %{"amqp_client": {:git, "https://github.com/jbrisbin/amqp_client.git", "d50aec00b94f0766a048b4eceaf25ddfdeeb1d86", []},
   "connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], []},
   "db_connection": {:hex, :db_connection, "1.0.0", "63c03e520d54886a66104d34e32397ba960db6e74b596ce221592c07d6a40d8d", [:mix], [{:connection, "~> 1.0.2", [hex: :connection, optional: false]}, {:poolboy, "~> 1.5", [hex: :poolboy, optional: true]}, {:sbroker, "~> 1.0", [hex: :sbroker, optional: true]}]},
-  "gen_stage": {:hex, :gen_stage, "0.9.0", "9daf0b5ae224405e0456b7df5a282a9a958176cdb9b963811ca38140e7e1b3c4", [:mix], []},
+  "gen_stage": {:hex, :gen_stage, "0.10.0", "ce1eb93a3f9708f2e215f70b3d3c7f55dea4a4ed7e9615195e28d543c9086656", [:mix], []},
   "rabbit_common": {:git, "https://github.com/jbrisbin/rabbit_common.git", "80814606ae23cc820c74e443383e192cd69ec030", []}}
