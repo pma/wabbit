@@ -1,5 +1,3 @@
-alias Experimental.GenStage
-
 defmodule Wabbit.GenStage do
   import Wabbit.Record
   require Record
