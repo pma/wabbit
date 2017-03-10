@@ -385,11 +385,13 @@ defmodule Wabbit.GenStage do
           {:ok, queue, new_state} when type == :producer ->
             set_channel_and_start_consuming(state, chan, queue, new_state, [])
           {:ok, queue, new_state, opts} when type == :producer ->
-            set_channel_and_start_consuming(state, chan, queue, new_state, opts)
+            {consume_options, _opts} = Keyword.split(opts, @consume_options)
+            set_channel_and_start_consuming(state, chan, queue, new_state, consume_options)
           {:ok, new_state} when type == :consumer ->
             set_channel_and_prepare_publish(state, chan, new_state, [])
           {:ok, new_state, opts} when type == :consumer ->
-            set_channel_and_prepare_publish(state, chan, new_state, opts)
+            {publish_options, _opts} = Keyword.split(opts, @publish_options)
+            set_channel_and_prepare_publish(state, chan, new_state, publish_options)
           other ->
             {:stop, {:bad_return_value, other}}
         end
