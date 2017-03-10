@@ -17,7 +17,7 @@ defmodule Wabbit.Mixfile do
   end
 
   defp deps do
-    [{:gen_stage, "~> 0.10"},
+    [{:gen_stage, "~> 0.11"},
      {:connection, "~> 1.0"},
      {:amqp_client, github: "jbrisbin/amqp_client"},
      {:rabbit_common, github: "jbrisbin/rabbit_common", override: true}]
