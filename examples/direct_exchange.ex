@@ -1,5 +1,3 @@
-alias Experimental.GenStage
-
 # GenStage Pipeline:
 #   Producer -> Sink -> [RabbitMQ Broker] -> Source -> Consumer
 
