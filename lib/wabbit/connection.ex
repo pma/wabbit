@@ -5,7 +5,7 @@ defmodule Wabbit.Connection do
   @doc """
   Starts a new connection
 
-  # Options
+  # Connection Options
 
     * `:username` - Default is `"guest"`
     * `:password` - Default is `"guest"`
@@ -25,9 +25,14 @@ defmodule Wabbit.Connection do
     * `:auth_mechanisms` - A list of the security mechanisms that the
       server supports. Default is `[&:amqp_auth_mechanisms.plain/3,
       &:amqp_auth_mechanisms.amqplain/3]`
+
+  # Options
+
+  See `GenServer.start_link/3` for more information.
+
   """
-  def start_link(options \\ []) do
-    Connection.start_link(__MODULE__, options, options)
+  def start_link(connection_options \\ [], options \\ []) do
+    Connection.start_link(__MODULE__, connection_options, options)
   end
 
   @doc """
