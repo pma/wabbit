@@ -215,8 +215,7 @@ defmodule Wabbit.GenStage do
           type: :consumer,
           mod: mod,
           producers: %{},
-          table_id: :ets.new(:unconfirmed, [:ordered_set, :private]),
-          unconfirmed: 0,
+          unconfirmed: :gb_trees.empty(),
           max_unconfirmed: max_unconfirmed,
           queue: :queue.new(),
           publish_options: publish_opts,
@@ -472,9 +471,8 @@ defmodule Wabbit.GenStage do
   defp publish_or_enqueue(state, event, payload, from, new_state, publish_opts) do
     publish_opts = Keyword.merge(state.publish_options, publish_opts)
     with {:ok, seqno} <- next_publish_seqno(state.chan),
-         :ok <- Wabbit.Basic.publish(state.chan, payload, publish_opts),
-         true <- :ets.insert(state.table_id, {seqno, {from, event}}) do
-      %{state | state: new_state, unconfirmed: state.unconfirmed + 1}
+         :ok <- Wabbit.Basic.publish(state.chan, payload, publish_opts) do
+      %{state | state: new_state, unconfirmed: :gb_trees.insert(seqno, {from, event}, state.unconfirmed)}
     else
       {:error, reason} ->
         :error_logger.format("Publish error with reason: ~s~n", [reason])
@@ -496,7 +494,7 @@ defmodule Wabbit.GenStage do
       {:"basic.ack", seqno, multiple} ->
         state |> confirm(seqno, multiple) |> drain_confirm_acks()
     after
-      0 -> %{state | unconfirmed: 0}
+      0 -> %{state | unconfirmed: :gb_trees.empty()}
     end
   end
 
@@ -509,50 +507,50 @@ defmodule Wabbit.GenStage do
   end
 
   defp flush_queue(state, queue) do
-    case :queue.out(queue) do
-      {:empty, _} ->
-        state
-      {{:value, {from, event}}, queue} ->
-        publish_or_enqueue(event, from, state) |> flush_queue(queue)
+    with {{:value, {from, event}}, queue} <- :queue.out(queue) do
+      publish_or_enqueue(event, from, state) |> flush_queue(queue)
+    else
+      {:empty, _} -> state
     end
   end
 
   defp flush_unconfirmed(state) do
-    pending_confirm = :ets.select(state.table_id, [{{:"$1", :"$2"}, [], [:"$2"]}])
-
-    true = :ets.delete_all_objects(state.table_id)
-
-    Enum.reduce(pending_confirm, state, fn {from, event}, state ->
-      publish_or_enqueue(event, from, state)
-    end)
+    with false <- :gb_trees.is_empty(state.unconfirmed),
+         {_seqno, {from, event}, unconfirmed} = :gb_trees.take_smallest(state.unconfirmed) do
+      publish_or_enqueue(event, from, %{state | unconfirmed: unconfirmed})
+    else
+      _ -> state
+    end
   end
 
-  defp confirm(state, seqno, multiple) do
-    ms =
-      case multiple do
-        true ->
-          [{{:"$1", :"$2"}, [{:"=<", :"$1", {:const, seqno}}], [{{:"$1", :"$2"}}]}]
-        false ->
-          [{{:"$1", :"$2"}, [{:"==", :"$1", {:const, seqno}}], [{{:"$1", :"$2"}}]}]
-      end
+  defp confirm(state, seqno, _multiple = false) do
+    with {:value, {from, _event}} <- :gb_trees.lookup(seqno, state.unconfirmed) do
+      unconfirmed = :gb_trees.delete(seqno, state.unconfirmed)
+      producers   = Map.update!(state.producers, from, fn {pending, min, max} ->
+        {pending + 1, min, max}
+      end)
+      %{state | producers: producers, unconfirmed: unconfirmed}
+    else
+      :none -> state
+    end
+  end
 
-    {producers, unconfirmed} =
-      Enum.reduce(:ets.select(state.table_id, ms), {state.producers, state.unconfirmed},
-        fn {seqno, {from, _event}}, {producers, unconfirmed} ->
-          true = :ets.delete(state.table_id, seqno)
-          producers = Map.update!(producers, from, fn {pending, min, max} ->
-            {pending + 1, min, max}
-          end)
-          {producers, unconfirmed - 1}
-        end)
-
-    %{state | producers: producers, unconfirmed: unconfirmed}
+  defp confirm(state, seqno, multiple = true) do
+    with false <- :gb_trees.is_empty(state.unconfirmed),
+         {key, {from, _event}, unconfirmed} when key <= seqno <- :gb_trees.take_smallest(state.unconfirmed) do
+      producers = Map.update!(state.producers, from, fn {pending, min, max} ->
+        {pending + 1, min, max}
+      end)
+      confirm(%{state | producers: producers, unconfirmed: unconfirmed}, seqno, multiple)
+    else
+      _ -> state
+    end
   end
 
   defp ask(%{chan: nil} = state, _from),
     do: state
-  defp ask(%{unconfirmed: unconfirmed,
-             max_unconfirmed: max_unconfirmed} = state, _) when unconfirmed > max_unconfirmed,
+  defp ask(%{unconfirmed: {unconfirmed_count, _}, max_unconfirmed: max_unconfirmed} = state, _)
+  when unconfirmed_count > max_unconfirmed,
     do: state
   defp ask(state, from) do
     case state.producers do
@@ -566,8 +564,8 @@ defmodule Wabbit.GenStage do
 
   defp ask(%{chan: nil} = state),
     do: state
-  defp ask(%{unconfirmed: unconfirmed, max_unconfirmed: max_unconfirmed} = state)
-  when unconfirmed > max_unconfirmed,
+  defp ask(%{unconfirmed: {unconfirmed_count, _}, max_unconfirmed: max_unconfirmed} = state)
+  when unconfirmed_count > max_unconfirmed,
     do: state
   defp ask(state) do
     Enum.reduce(state.producers, state, fn {from, _}, state ->
