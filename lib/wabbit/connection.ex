@@ -168,7 +168,7 @@ defmodule Wabbit.Connection do
     end
   end
   defp open(uri) when is_binary(uri) do
-    case uri |> to_char_list |> :amqp_uri.parse do
+    case uri |> to_charlist |> :amqp_uri.parse do
       {:ok, amqp_params} -> amqp_params |> amqp_params_network |> open
       error              -> error
     end
