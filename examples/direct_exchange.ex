@@ -120,3 +120,5 @@ end
 
 GenStage.sync_subscribe(sink, to: producer, min_demand: 500, max_demand: 1000)
 GenStage.sync_subscribe(consumer, to: source, max_demand: 1000)
+
+Process.sleep(:infinity)
