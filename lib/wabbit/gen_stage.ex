@@ -11,13 +11,13 @@ defmodule Wabbit.GenStage do
   @type type :: :producer | :consumer
 
   @typedoc "The supported init options"
-  @type options :: []
+  @type options :: keyword()
 
   @typedoc "The supported consume options"
-  @type publish_options :: []
+  @type publish_options :: keyword()
 
   @typedoc "The supported consume options"
-  @type consume_options :: []
+  @type consume_options :: keyword()
 
   @publish_options ~w(
     exchange   routing_key mandatory immediate      content_type content_encoding
