@@ -108,18 +108,6 @@ defmodule Wabbit.GenStage do
       @behaviour Wabbit.GenStage
 
       @doc false
-      def handle_channel_opened(channel, %{type: :consumer} = state) do
-        {:ok, state}
-      end
-
-      @doc false
-      def handle_channel_opened(channel, %{type: :producer} = state) do
-        {:ok, %{queue: queue}} =
-          Wabbit.Queue.declare(channel, "", auto_delete: true)
-        {:ok, queue, state}
-      end
-
-      @doc false
       def handle_encode(message, state) do
         {:ok, inspect(message), state}
       end
