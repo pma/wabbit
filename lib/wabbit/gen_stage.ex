@@ -162,7 +162,7 @@ defmodule Wabbit.GenStage do
         {:ok, state}
       end
 
-      defoverridable [handle_channel_opened: 2, handle_encode: 2, handle_decode: 3,
+      defoverridable [handle_encode: 2, handle_decode: 3,
                       handle_call: 3, handle_info: 2, handle_cast: 2,
                       handle_subscribe: 4, handle_cancel: 3, terminate: 2, code_change: 3]
     end
