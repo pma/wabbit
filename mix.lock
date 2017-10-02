@@ -1,5 +1,5 @@
-%{"amqp_client": {:hex, :amqp_client, "3.6.10", "f26fbacca4e71f58eba1a57746e5f10598550aa46e89bc67060da6ad1a6d95d5", [:make, :rebar3], [{:rabbit_common, "3.6.10", [hex: :rabbit_common, repo: "hexpm", optional: false]}], "hexpm"},
+%{"amqp_client": {:hex, :amqp_client, "3.6.12", "dfdfe7be661feb96ece404092a47431a73797ad412959732d940f96f80290da0", [:make, :rebar3], [{:rabbit_common, "3.6.12", [hex: :rabbit_common, repo: "hexpm", optional: false]}], "hexpm"},
   "connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], [], "hexpm"},
   "db_connection": {:hex, :db_connection, "1.0.0", "63c03e520d54886a66104d34e32397ba960db6e74b596ce221592c07d6a40d8d", [:mix], [{:connection, "~> 1.0.2", [hex: :connection, optional: false]}, {:poolboy, "~> 1.5", [hex: :poolboy, optional: true]}, {:sbroker, "~> 1.0", [hex: :sbroker, optional: true]}]},
-  "gen_stage": {:hex, :gen_stage, "0.12.0", "74ec6f84ea0e0e81aa26b745870495094de1c59bfdbd012ae3103208ea124623", [:mix], [], "hexpm"},
-  "rabbit_common": {:hex, :rabbit_common, "3.6.10", "2217845381350258c5714c22905ec197af0c4dd38eb3b6a5ddbf55c5bd93f127", [:make, :rebar3], [], "hexpm"}}
+  "gen_stage": {:hex, :gen_stage, "0.12.2", "e0e347cbb1ceb5f4e68a526aec4d64b54ad721f0a8b30aa9d28e0ad749419cbb", [:mix], [], "hexpm"},
+  "rabbit_common": {:hex, :rabbit_common, "3.6.12", "28dfb9ce4decf64caa9d9e70977ab57af983bc2795fd9db349bfc254a8b45235", [:make, :rebar3], [], "hexpm"}}
