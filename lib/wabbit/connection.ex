@@ -143,25 +143,29 @@ defmodule Wabbit.Connection do
     :amqp_connection.close(state.conn)
   end
 
+  defp get_param(options, key, default) do
+    # get parameter from options, app configuration, or default
+    Keyword.get(options, key, Application.get_env(:wabbit, key, default))
+  end
+
   defp open(options) when is_list(options) do
     options = options |> normalize_ssl_options
 
     amqp_params =
       amqp_params_network(
-        username:           Keyword.get(options, :username,           "guest"),
-        password:           Keyword.get(options, :password,           "guest"),
-        virtual_host:       Keyword.get(options, :virtual_host,       "/"),
-        host:               Keyword.get(options, :host,               'localhost') |> to_charlist,
-        port:               Keyword.get(options, :port,               :undefined),
-        channel_max:        Keyword.get(options, :channel_max,        0),
-        frame_max:          Keyword.get(options, :frame_max,          0),
-        heartbeat:          Keyword.get(options, :heartbeat,          0),
-        connection_timeout: Keyword.get(options, :connection_timeout, :infinity),
-        ssl_options:        Keyword.get(options, :ssl_options,        :none),
-        client_properties:  Keyword.get(options, :client_properties,  []),
-        socket_options:     Keyword.get(options, :socket_options,     []),
-        auth_mechanisms:    Keyword.get(options, :auth_mechanisms,    [&:amqp_auth_mechanisms.plain/3, &:amqp_auth_mechanisms.amqplain/3]))
-
+        username:           get_param(options, :username,           "guest"),
+        password:           get_param(options, :password,           "guest"),
+        virtual_host:       get_param(options, :virtual_host,       "/"),
+        host:               get_param(options, :host,               'localhost') |> to_charlist,
+        port:               get_param(options, :port,               :undefined),
+        channel_max:        get_param(options, :channel_max,        0),
+        frame_max:          get_param(options, :frame_max,          0),
+        heartbeat:          get_param(options, :heartbeat,          0),
+        connection_timeout: get_param(options, :connection_timeout, :infinity),
+        ssl_options:        get_param(options, :ssl_options,        :none),
+        client_properties:  get_param(options, :client_properties,  []),
+        socket_options:     get_param(options, :socket_options,     []),
+        auth_mechanisms:    get_param(options, :auth_mechanisms,    [&:amqp_auth_mechanisms.plain/3, &:amqp_auth_mechanisms.amqplain/3]))
     case :amqp_connection.start(amqp_params) do
       {:ok, pid} -> {:ok, pid}
       error      -> error
