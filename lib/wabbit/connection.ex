@@ -63,6 +63,8 @@ defmodule Wabbit.Connection do
         Connection.reply(from, :ok)
       {:error, :closed} ->
         :error_logger.format("Connection closed~n", [])
+      {:error, :killed} ->
+        :error_logger.info_msg("Connection closed: shutdown~n", [])
       {:error, reason} ->
         :error_logger.format("Connection error: ~s~n", [reason])
     end
