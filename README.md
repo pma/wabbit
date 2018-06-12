@@ -22,3 +22,14 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
     end
     ```
 
+  3. Optional - configure via `config/config.exs` and friends; this support also works well with Distillery
+
+    ```elixir
+    use Mix.Config
+
+    config :wabbit,
+      host: "localhost",
+      port: 5672,
+      username: "guest",
+      password: "guest"
+    ```
