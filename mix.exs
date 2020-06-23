@@ -19,7 +19,7 @@ defmodule Wabbit.Mixfile do
   end
 
   defp deps do
-    [{:gen_stage, "~> 0.12"},
+    [{:gen_stage, "~> 1.0"},
      {:connection, "~> 1.0"},
      {:amqp_client, "~> 3.6"},
      {:rabbit_common, "~> 3.6"},
